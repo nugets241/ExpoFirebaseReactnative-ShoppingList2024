@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, TextInput, Alert } from 'react-native';
+import { View, Text, FlatList, Button, TextInput, Alert, Pressable, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { fetchListDetails, updateListItems } from '../firestoreService';
 import LoadingScreen from './LoadingScreen';
 
@@ -46,7 +47,7 @@ const ListDetailsScreen = ({ route }) => {
     }
 
     setItemLoading(true); // Start loading state
-    const updatedItems = [...listDetails.items, { id: Date.now().toString(), name: newItem }];
+    const updatedItems = [...listDetails.items, { id: Date.now().toString(), name: newItem, checked: false }];
 
     try {
       await updateListItems(listId, updatedItems);
@@ -114,6 +115,23 @@ const ListDetailsScreen = ({ route }) => {
     }
   };
 
+  const toggleCheckbox = async (itemId) => {
+    setItemLoading(true);
+    const updatedItems = listDetails.items.map(item =>
+      item.id === itemId ? { ...item, checked: !item.checked } : item
+    );
+
+    try {
+      await updateListItems(listId, updatedItems);
+      setListDetails(prev => ({ ...prev, items: updatedItems }));
+    } catch (error) {
+      console.error('Error updating item:', error);
+      Alert.alert('Error', 'Could not update item.');
+    } finally {
+      setItemLoading(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1, padding: 16 }}>
       {itemLoading ? (
@@ -136,21 +154,17 @@ const ListDetailsScreen = ({ route }) => {
             data={listDetails.items}
             keyExtractor={item => item.id}
             renderItem={({ item }) => (
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1 }}>
-                {isEditing && editingItemId === item.id ? (
-                  <TextInput
-                    value={newItem}
-                    onChangeText={setNewItem}
-                    style={{ borderBottomWidth: 1, flex: 1 }}
-                  />
-                ) : (
-                  <Text>{item.name}</Text>
-                )}
-                {isEditing && editingItemId === item.id ? (
-                  <Button title="Update" onPress={handleUpdateItem} />
-                ) : (
-                  <Button title="Edit" onPress={() => handleEditItem(item.id, item.name)} />
-                )}
+              <View style={styles.itemContainer}>
+                <Pressable
+                  style={[styles.checkboxBase, item.checked && styles.checkboxChecked]}
+                  onPress={() => toggleCheckbox(item.id)}
+                >
+                  {item.checked && <Ionicons name="checkmark" size={24} color="white" />}
+                </Pressable>
+                <Text style={[styles.itemText, item.checked && styles.itemTextChecked]}>
+                  {item.name}
+                </Text>
+                <Button title="Edit" onPress={() => handleEditItem(item.id, item.name)} />
                 <Button title="Delete" onPress={() => handleDeleteItem(item.id)} />
               </View>
             )}
@@ -160,5 +174,37 @@ const ListDetailsScreen = ({ route }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  itemContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  checkboxBase: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: 'blue',
+    backgroundColor: 'transparent',
+    marginRight: 8,
+  },
+  checkboxChecked: {
+    backgroundColor: 'blue',
+  },
+  itemText: {
+    fontSize: 16,
+  },
+  itemTextChecked: {
+    textDecorationLine: 'line-through',
+    color: '#888',
+  },
+});
 
 export default ListDetailsScreen;
