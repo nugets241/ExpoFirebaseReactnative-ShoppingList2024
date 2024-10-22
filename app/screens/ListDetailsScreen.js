@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button, TextInput, Alert } from 'react-native';
 import { fetchListDetails } from '../firestoreService';
 import LoadingScreen from './LoadingScreen';
-import ListItem from './ListItem';
-import useListOperations from './useListOperations'; // Import the custom hook
+import ListItem from '../components/ListItem';
+import useListOperations from '../hooks/useListOperations'; // Import the custom hook
 
 const ListDetailsScreen = ({ route }) => {
   const { listId } = route.params;
