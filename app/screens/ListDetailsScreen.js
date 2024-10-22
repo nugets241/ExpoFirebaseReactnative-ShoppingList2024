@@ -9,6 +9,7 @@ const ListDetailsScreen = ({ route }) => {
   const { listId } = route.params;
   const [listDetails, setListDetails] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAscending, setIsAscending] = useState(false); // State to track ascending/descending order
 
   // Use the custom hook for list operations
   const {
@@ -27,7 +28,16 @@ const ListDetailsScreen = ({ route }) => {
     const getListDetails = async () => {
       try {
         const details = await fetchListDetails(listId);
-        setListDetails(details);
+        const sortedItems = details.items.sort((a, b) => {
+          // Always sort by completion status first
+          if (a.checked !== b.checked) {
+            return a.checked ? 1 : -1; // Completed items at the bottom
+          }
+          // Then sort by name (ascending)
+          return a.name.localeCompare(b.name);
+        });
+
+        setListDetails({ ...details, items: sortedItems }); // Set the sorted list details
       } catch (error) {
         console.error('Error fetching list details:', error);
         Alert.alert('Error', 'Could not fetch list details.');
@@ -38,6 +48,22 @@ const ListDetailsScreen = ({ route }) => {
 
     getListDetails();
   }, [listId]);
+
+  // Function to toggle sorting order
+  const toggleSortOrder = () => {
+    if (listDetails) {
+      const sortedItems = [...listDetails.items].sort((a, b) => {
+        // Always sort by completion status first
+        if (a.checked !== b.checked) {
+          return a.checked ? 1 : -1; // Completed items at the bottom
+        }
+        // Then sort by name (ascending or descending)
+        return isAscending ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+      });
+      setListDetails(prev => ({ ...prev, items: sortedItems }));
+      setIsAscending(!isAscending); // Toggle the sorting order
+    }
+  };
 
   if (loading) {
     return <LoadingScreen />;
@@ -61,6 +87,10 @@ const ListDetailsScreen = ({ route }) => {
           ) : (
             <Button title="Add Item" onPress={handleAddItem} />
           )}
+          <Button
+            title={`Sort by Name ${isAscending ? 'Descending' : 'Ascending'}`}
+            onPress={toggleSortOrder}
+          />
           <FlatList
             data={listDetails.items}
             keyExtractor={item => item.id}
