@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Alert } from 'react-native';
 import { updateListItems } from '../firestoreService';
 
-const useListOperations = (listId, listDetails, setListDetails) => {
+const useListOperations = (listId, listDetails, setListDetails, isAscending, setIsAscending) => {
   const [itemLoading, setItemLoading] = useState(false);
   const [newItem, setNewItem] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -27,7 +27,15 @@ const useListOperations = (listId, listDetails, setListDetails) => {
 
     try {
       await updateListItems(listId, updatedItems);
-      setListDetails(prev => ({ ...prev, items: updatedItems }));
+      const sortedItems = [...updatedItems].sort((a, b) => {
+        // Always sort by completion status first
+        if (a.checked !== b.checked) {
+          return a.checked ? 1 : -1; // Completed items at the bottom
+        }
+        // Then sort by name (ascending or descending)
+        return isAscending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+      });
+      setListDetails(prev => ({ ...prev, items: sortedItems }));
       setNewItem('');
       Alert.alert('Success', 'Item added successfully!'); // Feedback after adding
     } catch (error) {
@@ -78,7 +86,15 @@ const useListOperations = (listId, listDetails, setListDetails) => {
 
     try {
       await updateListItems(listId, updatedItems);
-      setListDetails(prev => ({ ...prev, items: updatedItems }));
+      const sortedItems = [...updatedItems].sort((a, b) => {
+        // Always sort by completion status first
+        if (a.checked !== b.checked) {
+          return a.checked ? 1 : -1; // Completed items at the bottom
+        }
+        // Then sort by name (ascending or descending)
+        return isAscending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+      });
+      setListDetails(prev => ({ ...prev, items: sortedItems }));
       setNewItem('');
       setIsEditing(false);
       Alert.alert('Success', 'Item updated successfully!');
@@ -107,6 +123,22 @@ const useListOperations = (listId, listDetails, setListDetails) => {
     }
   };
 
+  // Function to toggle sorting order
+  const toggleSortOrder = () => {
+    if (listDetails) {
+      const sortedItems = [...listDetails.items].sort((a, b) => {
+        // Always sort by completion status first
+        if (a.checked !== b.checked) {
+          return a.checked ? 1 : -1; // Completed items at the bottom
+        }
+        // Then sort by name (ascending or descending)
+        return isAscending ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
+      });
+      setListDetails(prev => ({ ...prev, items: sortedItems }));
+    }
+    setIsAscending(!isAscending); // Toggle the sorting order
+  };
+
   return {
     itemLoading,
     newItem,
@@ -117,6 +149,7 @@ const useListOperations = (listId, listDetails, setListDetails) => {
     handleEditItem,
     handleUpdateItem,
     toggleCheckbox,
+    toggleSortOrder
   };
 };
 

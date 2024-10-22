@@ -22,7 +22,8 @@ const ListDetailsScreen = ({ route }) => {
     handleEditItem,
     handleUpdateItem,
     toggleCheckbox,
-  } = useListOperations(listId, listDetails, setListDetails);
+    toggleSortOrder
+  } = useListOperations(listId, listDetails, setListDetails, isAscending, setIsAscending);
 
   useEffect(() => {
     const getListDetails = async () => {
@@ -33,8 +34,8 @@ const ListDetailsScreen = ({ route }) => {
           if (a.checked !== b.checked) {
             return a.checked ? 1 : -1; // Completed items at the bottom
           }
-          // Then sort by name (ascending)
-          return a.name.localeCompare(b.name);
+          // Then sort by name (ascending or descending)
+          return isAscending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
         });
 
         setListDetails({ ...details, items: sortedItems }); // Set the sorted list details
@@ -48,22 +49,6 @@ const ListDetailsScreen = ({ route }) => {
 
     getListDetails();
   }, [listId]);
-
-  // Function to toggle sorting order
-  const toggleSortOrder = () => {
-    if (listDetails) {
-      const sortedItems = [...listDetails.items].sort((a, b) => {
-        // Always sort by completion status first
-        if (a.checked !== b.checked) {
-          return a.checked ? 1 : -1; // Completed items at the bottom
-        }
-        // Then sort by name (ascending or descending)
-        return isAscending ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name);
-      });
-      setListDetails(prev => ({ ...prev, items: sortedItems }));
-      setIsAscending(!isAscending); // Toggle the sorting order
-    }
-  };
 
   if (loading) {
     return <LoadingScreen />;
