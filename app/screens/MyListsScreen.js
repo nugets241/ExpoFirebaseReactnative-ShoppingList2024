@@ -4,19 +4,16 @@ import { View, Text, FlatList, Button, TouchableOpacity, Alert, Modal } from 're
 import { fetchUserLists } from '../firestoreService';
 import LoadingScreen from './LoadingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../../firebaseConfig';
 import Icon from 'react-native-vector-icons/MaterialIcons'; // Import icon library
-
 
 const MyListsScreen = ({ navigation, route }) => {
     const [lists, setLists] = useState([]);
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState('');
-
     const [selectedListId, setSelectedListId] = useState(null); // Track which list was clicked
     const [modalVisible, setModalVisible] = useState(false); // State to manage modal visibility
-
 
     useEffect(() => {
         const loadUserAndLists = async () => {
@@ -51,8 +48,17 @@ const MyListsScreen = ({ navigation, route }) => {
         };
 
         loadUserAndLists();
+        // When route.params?.refresh changes (e.g., when adding a list), refresh the lists
+    if (route.params?.refresh) {
+        loadUserAndLists(); // Fetch updated lists if refresh param is passed
+        // Optionally reset the refresh param after updating
+        navigation.setParams({ refresh: false });
+    }
     }, [navigation, route.params?.refresh]); // Add route.params?.refresh to dependencies
 
+
+
+//-------------------------------------------
     const handleAddList = () => {
         navigation.navigate('AddList');
     };
@@ -65,11 +71,21 @@ const MyListsScreen = ({ navigation, route }) => {
         setModalVisible(false);
     };
 
-    const handleDeleteList = () => {
-        // Add your delete list logic here using selectedListId
-        setModalVisible(false);
-        Alert.alert('Deleted', 'List has been deleted.');
+    const handleDeleteList = async () => { // Updated function to delete list
+        try {
+            const listRef = doc(FIRESTORE_DB, 'lists', selectedListId); // Get document reference
+            await deleteDoc(listRef); // Use deleteDoc to delete the document
+    
+            setLists(lists.filter((list) => list.id !== selectedListId)); // Update lists state by filtering out deleted list
+        
+            setModalVisible(false); // Close the modal
+            Alert.alert('Deleted', 'List has been deleted.');
+        } catch (error) {
+            console.error('Error deleting list:', error); // Log error
+            Alert.alert('Error', 'Failed to delete the list.');
+        }
     };
+    
 
     const handleShareList = () => {
         // Add your share list logic here
