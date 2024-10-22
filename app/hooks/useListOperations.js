@@ -9,6 +9,35 @@ const useListOperations = (listId, listDetails, setListDetails) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingItemId, setEditingItemId] = useState(null);
 
+  const handleAddItem = async () => {
+    if (newItem.trim() === '') {
+      Alert.alert('Error', 'Please enter an item name.');
+      return;
+    }
+
+    // Check for duplicate item
+    const itemExists = listDetails.items.some(item => item.name.toLowerCase() === newItem.toLowerCase());
+    if (itemExists) {
+      Alert.alert('Error', 'This item already exists in the list.');
+      return;
+    }
+
+    setItemLoading(true); // Start loading state
+    const updatedItems = [...listDetails.items, { id: Date.now().toString(), name: newItem, checked: false }];
+
+    try {
+      await updateListItems(listId, updatedItems);
+      setListDetails(prev => ({ ...prev, items: updatedItems }));
+      setNewItem('');
+      Alert.alert('Success', 'Item added successfully!'); // Feedback after adding
+    } catch (error) {
+      console.error('Error adding item:', error);
+      Alert.alert('Error', 'Could not add item to the list.');
+    } finally {
+      setItemLoading(false); // End loading state
+    }
+  };
+
   const handleDeleteItem = async (itemId) => {
     setItemLoading(true);
     const updatedItems = listDetails.items.filter(item => item.id !== itemId);
@@ -83,6 +112,7 @@ const useListOperations = (listId, listDetails, setListDetails) => {
     newItem,
     setNewItem,
     isEditing,
+    handleAddItem,
     handleDeleteItem,
     handleEditItem,
     handleUpdateItem,

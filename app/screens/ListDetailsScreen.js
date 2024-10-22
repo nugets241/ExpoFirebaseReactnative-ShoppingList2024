@@ -16,6 +16,7 @@ const ListDetailsScreen = ({ route }) => {
     newItem,
     setNewItem,
     isEditing,
+    handleAddItem,
     handleDeleteItem,
     handleEditItem,
     handleUpdateItem,
@@ -58,7 +59,7 @@ const ListDetailsScreen = ({ route }) => {
           {isEditing ? (
             <Button title="Update Item" onPress={handleUpdateItem} />
           ) : (
-            <Button title="Add Item" onPress={() => Alert.alert('Add functionality not implemented')} />
+            <Button title="Add Item" onPress={handleAddItem} />
           )}
           <FlatList
             data={listDetails.items}
