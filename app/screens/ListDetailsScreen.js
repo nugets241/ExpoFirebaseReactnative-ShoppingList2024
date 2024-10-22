@@ -1,3 +1,4 @@
+//app/screens/ListDetailsScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button, TextInput, Alert } from 'react-native';
 import { fetchListDetails } from '../firestoreService';

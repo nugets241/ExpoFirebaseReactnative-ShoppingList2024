@@ -1,4 +1,4 @@
-// useListOperations.js
+// app/hooks/useListOperations.js
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { updateListItems } from '../firestoreService';

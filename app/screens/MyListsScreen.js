@@ -1,16 +1,19 @@
 // app/screens/MyListsScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, FlatList, Button, TouchableOpacity, Alert, Modal } from 'react-native';
 import { fetchUserLists } from '../firestoreService';
 import LoadingScreen from './LoadingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, deleteDoc } from 'firebase/firestore';
 import { FIRESTORE_DB } from '../../firebaseConfig';
+import Icon from 'react-native-vector-icons/MaterialIcons'; // Import icon library
 
 const MyListsScreen = ({ navigation, route }) => {
     const [lists, setLists] = useState([]);
     const [loading, setLoading] = useState(true);
     const [userId, setUserId] = useState('');
+    const [selectedListId, setSelectedListId] = useState(null); // Track which list was clicked
+    const [modalVisible, setModalVisible] = useState(false); // State to manage modal visibility
 
     useEffect(() => {
         const loadUserAndLists = async () => {
@@ -45,10 +48,49 @@ const MyListsScreen = ({ navigation, route }) => {
         };
 
         loadUserAndLists();
+        // When route.params?.refresh changes (e.g., when adding a list), refresh the lists
+    if (route.params?.refresh) {
+        loadUserAndLists(); // Fetch updated lists if refresh param is passed
+        // Optionally reset the refresh param after updating
+        navigation.setParams({ refresh: false });
+    }
     }, [navigation, route.params?.refresh]); // Add route.params?.refresh to dependencies
 
+
+
+//-------------------------------------------
     const handleAddList = () => {
         navigation.navigate('AddList');
+    };
+    const handleOpenModal = (listId) => {
+        setSelectedListId(listId);
+        setModalVisible(true);
+    };
+
+    const handleCloseModal = () => {
+        setModalVisible(false);
+    };
+
+    const handleDeleteList = async () => { // Updated function to delete list
+        try {
+            const listRef = doc(FIRESTORE_DB, 'lists', selectedListId); // Get document reference
+            await deleteDoc(listRef); // Use deleteDoc to delete the document
+    
+            setLists(lists.filter((list) => list.id !== selectedListId)); // Update lists state by filtering out deleted list
+        
+            setModalVisible(false); // Close the modal
+            Alert.alert('Deleted', 'List has been deleted.');
+        } catch (error) {
+            console.error('Error deleting list:', error); // Log error
+            Alert.alert('Error', 'Failed to delete the list.');
+        }
+    };
+    
+
+    const handleShareList = () => {
+        // Add your share list logic here
+        setModalVisible(false);
+        Alert.alert('Share', 'List sharing functionality to be implemented.');
     };
 
     if (loading) {
@@ -59,14 +101,35 @@ const MyListsScreen = ({ navigation, route }) => {
         <View style={{ flex: 1, padding: 16 }}>
             <FlatList
                 data={lists}
-                keyExtractor={item => item.id} // Ensure item.id is available
+                keyExtractor={item => item.id}
                 renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => navigation.navigate('ListDetails', { listId: item.id })}>
-                        <Text style={{ padding: 16, borderBottomWidth: 1 }}>{item.name}</Text>
-                    </TouchableOpacity>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', borderBottomWidth: 1, paddingVertical: 10 }}>
+                        <TouchableOpacity onPress={() => navigation.navigate('ListDetails', { listId: item.id })}>
+                            <Text>{item.name}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleOpenModal(item.id)}>
+                            <Icon name="more-horiz" size={24} />
+                        </TouchableOpacity>
+                    </View>
                 )}
             />
             <Button title="Add New List" onPress={handleAddList} />
+
+            {/* Modal for Share and Delete options */}
+            <Modal
+                visible={modalVisible}
+                animationType="slide"
+                transparent={true}
+                onRequestClose={handleCloseModal}
+            >
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+                    <View style={{ width: 300, backgroundColor: 'white', padding: 20, borderRadius: 10 }}>
+                        <Button title="Share" onPress={handleShareList} />
+                        <Button title="Delete" onPress={handleDeleteList} color="red" />
+                        <Button title="Cancel" onPress={handleCloseModal} />
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 };
