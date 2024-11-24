@@ -1,7 +1,7 @@
 // ListItem.js
 import React from 'react';
-import { View, Text, Button, Pressable, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { Foundation, FontAwesome6 } from '@expo/vector-icons';
 
 const ListItem = ({ item, toggleCheckbox, handleEditItem, handleDeleteItem }) => {
   return (
@@ -10,13 +10,17 @@ const ListItem = ({ item, toggleCheckbox, handleEditItem, handleDeleteItem }) =>
         style={[styles.checkboxBase, item.checked && styles.checkboxChecked]}
         onPress={() => toggleCheckbox(item.id)}
       >
-        {item.checked && <Ionicons name="checkmark" size={24} color="white" />}
+        {item.checked && <Foundation  name="check" size={20} color="white" />}
       </Pressable>
       <Text style={[styles.itemText, item.checked && styles.itemTextChecked]}>
         {item.name}
       </Text>
-      <Button title="Edit" onPress={() => handleEditItem(item.id, item.name)} />
-      <Button title="Delete" onPress={() => handleDeleteItem(item.id)} />
+      <TouchableOpacity onPress={() => handleDeleteItem(item.id)}>
+        <FontAwesome6 name="trash-can" size={24} color="black" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={() => handleEditItem(item.id)}>
+        <FontAwesome6  name="edit" size={24} color="black" />
+      </TouchableOpacity>
     </View>
   );
 };
