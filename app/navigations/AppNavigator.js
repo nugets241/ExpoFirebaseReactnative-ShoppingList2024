@@ -3,8 +3,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import MyListsScreen from '../screens/MyListsScreen';
-import FamilyListsScreen from '../screens/FamilyListsScreen';
+import ListsScreen from '../screens/ListsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import AddListScreen from '../screens/AddListScreen';
@@ -15,8 +14,7 @@ const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => (
   <Tab.Navigator>
-    <Tab.Screen name="My Lists" component={MyListsScreen} />
-    <Tab.Screen name="Family Lists" component={FamilyListsScreen} />
+    <Tab.Screen name="Lists" component={ListsScreen} />
     <Tab.Screen name="Settings" component={SettingsScreen} />
   </Tab.Navigator>
 );
