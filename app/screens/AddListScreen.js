@@ -49,7 +49,7 @@ const AddListScreen = ({ navigation }) => {
       try {
         await createList(listName, userId);
         Alert.alert('Success', 'List created successfully!');
-        navigation.navigate('Main', { screen: 'My Lists', params: { refresh: true } }); // Pass refresh parameter
+        navigation.navigate('Main', { screen: 'Lists', params: { refresh: true } }); // Pass refresh parameter
       } catch (error) {
         console.error('Error creating list:', error);
         Alert.alert('Error', 'Could not create list. Please try again.');
