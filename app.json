@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "ShoppingList",
-    "slug": "ShoppingList",
+    "name": "Shopping List",
+    "slug": "shopping-list",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -26,14 +26,14 @@
     },
     "extra": {
       "eas": {
-        "projectId": "0d3e85be-c698-4da7-bf67-2b38747f4c16"
+        "projectId": "c2f60f5c-7a4a-424d-9845-d1cd90560501"
       }
     },
     "runtimeVersion": {
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/0d3e85be-c698-4da7-bf67-2b38747f4c16"
+      "url": "https://u.expo.dev/c2f60f5c-7a4a-424d-9845-d1cd90560501"
     }
   }
 }
