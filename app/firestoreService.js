@@ -53,6 +53,18 @@ export const createList = async (listName, userId) => {
   });
 };
 
+// Function to delete a list
+export const deleteList = async (listId) => {
+  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
+  await deleteDoc(listDocRef);
+};
+
+// Function to update a list name
+export const updateListName = async (listId, newName) => {
+  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
+  await updateDoc(listDocRef, { name: newName });
+};
+
 // Fetch lists for a specific user
 export const fetchUserLists = async (userId) => {
   const listsCollectionRef = collection(FIRESTORE_DB, 'lists');
