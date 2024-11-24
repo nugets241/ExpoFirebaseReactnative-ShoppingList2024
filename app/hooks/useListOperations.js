@@ -114,7 +114,15 @@ const useListOperations = (listId, listDetails, setListDetails, isAscending, set
 
     try {
       await updateListItems(listId, updatedItems);
-      setListDetails(prev => ({ ...prev, items: updatedItems }));
+      const sortedItems = [...updatedItems].sort((a, b) => {
+        // Always sort by completion status first
+        if (a.checked !== b.checked) {
+          return a.checked ? 1 : -1; // Completed items at the bottom
+        }
+        // Then sort by name (ascending or descending)
+        return isAscending ? b.name.localeCompare(a.name) : a.name.localeCompare(b.name);
+      });
+      setListDetails(prev => ({ ...prev, items: sortedItems }));
     } catch (error) {
       console.error('Error updating item:', error);
       Alert.alert('Error', 'Could not update item.');
