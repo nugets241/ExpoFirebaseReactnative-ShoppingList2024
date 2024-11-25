@@ -1,7 +1,7 @@
 // app/screens/MyListsScreen.js
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Button, TouchableOpacity, Alert, TextInput, StyleSheet } from 'react-native';
-import { fetchUserLists, deleteList, updateListName, convertToSharedList } from '../firestoreService';
+import { View, Text, FlatList, Button, TouchableOpacity, Alert, TextInput, StyleSheet, Modal, Clipboard } from 'react-native';
+import { fetchUserLists, deleteList, updateListName, convertToSharedList, checkUsernameExists, shareListWithUser } from '../firestoreService';
 import LoadingScreen from './LoadingScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, query, where, getDocs } from 'firebase/firestore';
@@ -14,6 +14,11 @@ const MyListsScreen = ({ navigation, route }) => {
   const [userId, setUserId] = useState('');
   const [editingListId, setEditingListId] = useState(null);
   const [newListName, setNewListName] = useState('');
+  const [modalVisible, setModalVisible] = useState(false);
+  const [shareModalVisible, setShareModalVisible] = useState(false);
+  const [shareUsername, setShareUsername] = useState('');
+  const [invitationCode, setInvitationCode] = useState('');
+  const [currentListId, setCurrentListId] = useState(null); // Add state to track the current list ID
 
   useEffect(() => {
     const loadUserAndLists = async () => {
@@ -35,7 +40,6 @@ const MyListsScreen = ({ navigation, route }) => {
             navigation.navigate('Onboarding');
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
           Alert.alert('Error', 'Could not fetch user data. Please try again.');
         }
       } else {
@@ -72,7 +76,6 @@ const MyListsScreen = ({ navigation, route }) => {
               const userLists = await fetchUserLists(userId);
               setLists(userLists);
             } catch (error) {
-              console.error('Error deleting list:', error);
               Alert.alert('Error', 'Could not delete list. Please try again.');
             }
           },
@@ -85,20 +88,26 @@ const MyListsScreen = ({ navigation, route }) => {
   const handleEditList = (listId, listName) => {
     setEditingListId(listId);
     setNewListName(listName);
+    setModalVisible(true);
   };
 
   const handleUpdateList = async () => {
     if (newListName.trim()) {
+      const listExists = lists.some(list => list.name.toLowerCase() === newListName.toLowerCase());
+      if (listExists) {
+        Alert.alert('Error', 'A list with this name already exists. Please choose a different name.');
+        return;
+      }
       try {
         await updateListName(editingListId, newListName);
         Alert.alert('Success', 'List name updated successfully!');
         setEditingListId(null);
         setNewListName('');
+        setModalVisible(false);
         // Refresh the lists
         const userLists = await fetchUserLists(userId);
         setLists(userLists);
       } catch (error) {
-        console.error('Error updating list name:', error);
         Alert.alert('Error', 'Could not update list name. Please try again.');
       }
     } else {
@@ -108,15 +117,33 @@ const MyListsScreen = ({ navigation, route }) => {
 
   const handleConvertToShared = async (listId) => {
     try {
-      await convertToSharedList(listId, userId);
-      Alert.alert('Success', 'List converted to shared successfully!');
-      // Refresh the lists
-      const userLists = await fetchUserLists(userId);
-      setLists(userLists);
+      const invitationCode = await convertToSharedList(listId, userId);
+      setInvitationCode(invitationCode);
+      setCurrentListId(listId); // Set the current list ID
+      setShareModalVisible(true);
     } catch (error) {
-      console.error('Error converting list to shared:', error);
       Alert.alert('Error', 'Could not convert list to shared. Please try again.');
     }
+  };
+
+  const handleShareList = async () => {
+    if (shareUsername.trim()) {
+      try {
+        await shareListWithUser(currentListId, shareUsername); // Use the current list ID
+        Alert.alert('Success', `List shared successfully with ${shareUsername}!`);
+        setShareUsername('');
+        setShareModalVisible(false);
+      } catch (error) {
+        Alert.alert('Error', 'The username entered does not exist. Please share it with an existing user.');
+      }
+    } else {
+      Alert.alert('Error', 'Please enter a username.');
+    }
+  };
+
+  const copyToClipboard = () => {
+    Clipboard.setString(invitationCode);
+    Alert.alert('Copied', 'Invitation code copied to clipboard.');
   };
 
   if (loading) {
@@ -125,6 +152,7 @@ const MyListsScreen = ({ navigation, route }) => {
 
   return (
     <View style={{ flex: 1, padding: 16 }}>
+      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>My Lists</Text>
       <FlatList
         data={lists}
         keyExtractor={item => item.id}
@@ -133,30 +161,71 @@ const MyListsScreen = ({ navigation, route }) => {
             <TouchableOpacity onPress={() => navigation.navigate('ListDetails', { listId: item.id, listName: item.name })}>
               <Text style={{ padding: 16 }}>{item.name}</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleConvertToShared(item.id)}>
-              <FontAwesome6 name="share-from-square" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeleteList(item.id)}>
-              <FontAwesome6 name="trash-can" size={24} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleEditList(item.id, item.name)}>
-              <FontAwesome6 name="edit" size={24} color="black" />
-            </TouchableOpacity>
+            <View style={styles.iconContainer}>
+              <TouchableOpacity onPress={() => handleConvertToShared(item.id)} style={styles.icon}>
+                <FontAwesome6 name="share-from-square" size={24} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleDeleteList(item.id)} style={styles.icon}>
+                <FontAwesome6 name="trash-can" size={24} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleEditList(item.id, item.name)} style={styles.icon}>
+                <FontAwesome6 name="edit" size={24} color="black" />
+              </TouchableOpacity>
+            </View>
           </View>
         )}
       />
-      {editingListId && (
-        <View>
-          <TextInput
-            placeholder="Enter new list name"
-            value={newListName}
-            onChangeText={setNewListName}
-            style={{ borderBottomWidth: 1, marginBottom: 20 }}
-          />
-          <Button title="Update List" onPress={handleUpdateList} />
-        </View>
-      )}
       <Button title="Add New List" onPress={handleAddList} />
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={modalVisible}
+        onRequestClose={() => {
+          setModalVisible(!modalVisible);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Edit List Name</Text>
+            <TextInput
+              placeholder="Enter new list name"
+              value={newListName}
+              onChangeText={setNewListName}
+              style={styles.modalInput}
+            />
+            <View style={styles.modalButtons}>
+              <Button title="Update" onPress={handleUpdateList} />
+              <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            </View>
+          </View>
+        </View>
+      </Modal>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={shareModalVisible}
+        onRequestClose={() => {
+          setShareModalVisible(!shareModalVisible);
+        }}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>Share List</Text>
+            <TextInput
+              placeholder="Enter username"
+              value={shareUsername}
+              onChangeText={setShareUsername}
+              style={styles.modalInput}
+            />
+            <View style={styles.modalButtons}>
+              <Button title="Share" onPress={handleShareList} />
+              <Button title="Cancel" onPress={() => setShareModalVisible(false)} />
+            </View>
+            <Text style={styles.modalText}>Invitation Code: {invitationCode}</Text>
+            <Button title="Copy Invitation Code" onPress={copyToClipboard} />
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -186,6 +255,50 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  iconContainer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+  },
+  icon: {
+    marginLeft: 20,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalView: {
+    width: 300,
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 15,
+  },
+  modalInput: {
+    width: '100%',
+    borderBottomWidth: 1,
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
 });
 
