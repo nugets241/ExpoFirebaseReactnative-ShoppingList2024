@@ -1,4 +1,4 @@
-// useListOperations.js
+// app/hooks/useListOperations.js
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { updateListItems } from '../firestoreService';
@@ -67,13 +67,13 @@ const useListOperations = (listId, listDetails, setListDetails, isAscending, set
     setEditingItemId(itemId);
   };
 
-  const handleUpdateItem = async () => {
-    if (newItem.trim() === '') {
+  const handleUpdateItem = async (itemId, newItemName) => {
+    if (newItemName.trim() === '') {
       Alert.alert('Error', 'Please enter an item name.');
       return;
     }
 
-    const itemExists = listDetails.items.some(item => item.name.toLowerCase() === newItem.toLowerCase());
+    const itemExists = listDetails.items.some(item => item.name.toLowerCase() === newItemName.toLowerCase());
     if (itemExists && editingItemId !== null) {
       Alert.alert('Error', 'This item already exists in the list.');
       return;
@@ -81,7 +81,7 @@ const useListOperations = (listId, listDetails, setListDetails, isAscending, set
 
     setItemLoading(true);
     const updatedItems = listDetails.items.map(item =>
-      item.id === editingItemId ? { ...item, name: newItem } : item
+      item.id === itemId ? { ...item, name: newItemName } : item
     );
 
     try {
