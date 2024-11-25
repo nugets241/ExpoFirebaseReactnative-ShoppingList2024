@@ -33,7 +33,6 @@ const SharedListsScreen = ({ navigation, route }) => {
             navigation.navigate('Onboarding');
           }
         } catch (error) {
-          console.error('Error fetching user data:', error);
           Alert.alert('Error', 'Could not fetch user data. Please try again.');
         }
       } else {
@@ -56,7 +55,6 @@ const SharedListsScreen = ({ navigation, route }) => {
         setSharedLists(sharedLists);
         setInvitationCode('');
       } catch (error) {
-        console.error('Error joining shared list:', error);
         Alert.alert('Error', 'Could not join shared list. Please try again.');
       }
     } else {
@@ -75,7 +73,10 @@ const SharedListsScreen = ({ navigation, route }) => {
         keyExtractor={item => item.id}
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('ListDetails', { listId: item.id, listName: item.name })}>
-            <Text style={{ padding: 16, borderBottomWidth: 1 }}>{item.name}</Text>
+            <View style={styles.itemContainer}>
+              <Text>{item.name}</Text>
+              <Text style={styles.ownerText}>Owner: {item.ownerUsername}</Text>
+            </View>
           </TouchableOpacity>
         )}
       />
@@ -109,12 +110,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   itemContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+  },
+  ownerText: {
+    fontSize: 12,
+    color: '#888',
+    marginTop: 4,
   },
 });
 
