@@ -1,4 +1,3 @@
-// app/firestoreService.js
 import { FIRESTORE_DB } from '../firebaseConfig';
 import {
   collection,
@@ -10,62 +9,34 @@ import {
   setDoc,
   deleteDoc,
   getDoc,
-  updateDoc // Don't forget this if you use it later
+  updateDoc
 } from 'firebase/firestore';
 
-const usersCollection = collection(FIRESTORE_DB, 'users');
 const listsCollection = collection(FIRESTORE_DB, 'lists');
+const usersCollection = collection(FIRESTORE_DB, 'users');
 
-// Function to check if username exists
-export const checkUsernameExists = async (username) => {
-  const q = query(usersCollection, where('username', '==', username));
-  const querySnapshot = await getDocs(q);
-  return !querySnapshot.empty; // Returns true if username exists
-};
-
-// Function to add a new user
-export const addUser = async (username) => {
-  await addDoc(usersCollection, { username });
-};
-
-// Function to update the username
-export const updateUsername = async (oldUsername, newUsername) => {
-  const usersCollectionRef = collection(FIRESTORE_DB, 'users');
-  const userQuery = query(usersCollectionRef, where('username', '==', oldUsername));
-  const userSnapshot = await getDocs(userQuery);
-
-  if (!userSnapshot.empty) {
-    const userDoc = userSnapshot.docs[0];
-    const userDocRef = doc(FIRESTORE_DB, 'users', userDoc.id);
-    await updateDoc(userDocRef, { username: newUsername });
-  } else {
-    throw new Error('User not found');
+// Function to generate a random alphanumeric string
+const generateInvitationCode = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
+  return code;
 };
 
 // Function to create a new list
 export const createList = async (listName, userId) => {
-  const listsCollectionRef = collection(FIRESTORE_DB, 'lists');
-  await addDoc(listsCollectionRef, {
+  await addDoc(listsCollection, {
     name: listName,
-    userId: userId, // Save the userId with the list
-    items: [], // Initialize with empty items array
+    userId: userId,
+    items: [],
+    sharedWith: [],
+    invitationCode: generateInvitationCode(),
   });
 };
 
-// Function to delete a list
-export const deleteList = async (listId) => {
-  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  await deleteDoc(listDocRef);
-};
-
-// Function to update a list name
-export const updateListName = async (listId, newName) => {
-  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  await updateDoc(listDocRef, { name: newName });
-};
-
-// Fetch lists for a specific user
+// Function to fetch user lists
 export const fetchUserLists = async (userId) => {
   const listsCollectionRef = collection(FIRESTORE_DB, 'lists');
   const q = query(listsCollectionRef, where('userId', '==', userId)); // Query by userId
@@ -80,22 +51,6 @@ export const fetchUserLists = async (userId) => {
   return userLists; // Ensure this is an array
 };
 
-// // Function to fetch shared lists for a specific user
-// export const fetchSharedLists = async (userId) => {
-//   const listsCollectionRef = collection(FIRESTORE_DB, 'lists');
-//   const q = query(listsCollectionRef, where('sharedWith', 'array-contains', userId)); // Query by sharedWith array
-
-//   const querySnapshot = await getDocs(q);
-//   const sharedLists = [];
-
-//   querySnapshot.forEach((doc) => {
-//     sharedLists.push({ id: doc.id, ...doc.data() }); // Include id and data in the object
-//   });
-
-//   return sharedLists; // Ensure this is an array
-// };
-
-
 // Function to fetch shared lists
 export const fetchSharedLists = async (userId) => {
   const q = query(listsCollection, where('sharedWith', 'array-contains', userId));
@@ -105,23 +60,6 @@ export const fetchSharedLists = async (userId) => {
     sharedLists.push({ id: doc.id, ...doc.data() });
   });
   return sharedLists;
-};
-
-// Function to convert a personal list to a shared list
-export const convertToSharedList = async (listId, userId) => {
-  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  const listDoc = await getDoc(listDocRef);
-
-  if (listDoc.exists()) {
-    const listData = listDoc.data();
-    const sharedWith = listData.sharedWith || [];
-    if (!sharedWith.includes(userId)) {
-      sharedWith.push(userId);
-    }
-    await updateDoc(listDocRef, { sharedWith });
-  } else {
-    throw new Error('List not found');
-  }
 };
 
 // Function to join a shared list using an invitation code
@@ -134,6 +72,7 @@ export const joinSharedList = async (invitationCode, userId) => {
     const listDocRef = doc(FIRESTORE_DB, 'lists', listDoc.id);
     const listData = listDoc.data();
     const sharedWith = listData.sharedWith || [];
+
     if (!sharedWith.includes(userId)) {
       sharedWith.push(userId);
       await updateDoc(listDocRef, { sharedWith });
@@ -143,87 +82,85 @@ export const joinSharedList = async (invitationCode, userId) => {
   }
 };
 
-// Function to add an item to a list
-export const addItemToList = async (listId, item) => {
+// Function to delete a list
+export const deleteList = async (listId) => {
   const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  const currentList = await getDoc(listDocRef);
-  await setDoc(listDocRef, { items: [...currentList.data().items, item] }, { merge: true });
+  await deleteDoc(listDocRef);
 };
 
-// Function to delete an item from a list
-export const deleteItemFromList = async (listId, itemId) => {
+// Function to update a list name
+export const updateListName = async (listId, newName) => {
   const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  const currentList = await getDoc(listDocRef);
-  const updatedItems = currentList.data().items.filter(item => item.id !== itemId);
-  await setDoc(listDocRef, { items: updatedItems }, { merge: true });
+  await updateDoc(listDocRef, { name: newName });
 };
 
-// Function to update an item in a list
-export const updateItemInList = async (listId, itemId, updatedItem) => {
+// Function to convert a personal list to a shared list and generate an invitation code
+export const convertToSharedList = async (listId, userId) => {
   const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  const currentList = await getDoc(listDocRef);
-  const updatedItems = currentList.data().items.map(item => (item.id === itemId ? updatedItem : item));
-  await setDoc(listDocRef, { items: updatedItems }, { merge: true });
-};
-
-// Fetch list details for a specific list ID
-export const fetchListDetails = async (listId) => {
-  const listDoc = doc(FIRESTORE_DB, 'lists', listId); // Fetch the specific document using listId
-  const docSnap = await getDoc(listDoc);
-
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    return {
-      id: docSnap.id,
-      name: data.name,
-      items: data.items || [], // Ensure items is an array (default to empty)
-    };
-  } else {
-    throw new Error('No such list!');
-  }
-};
-
-// Update the items array of a specific list
-export const updateListItems = async (listId, items) => {
-  const listDoc = doc(FIRESTORE_DB, 'lists', listId);
-  await updateDoc(listDoc, {
-    items: items,
-  });
-};
-
-// Function to send notifications
-export const sendNotification = async (title, body, userId) => {
-  const userDocRef = doc(FIRESTORE_DB, 'users', userId);
-  const userDoc = await getDoc(userDocRef);
-
-  if (userDoc.exists()) {
-    const userData = userDoc.data();
-    const fcmToken = userData.fcmToken;
-
-    if (fcmToken) {
-      await messaging().sendMessage({
-        to: fcmToken,
-        notification: {
-          title,
-          body,
-        },
-      });
-    }
-  }
-};
-
-// Function to update the list and send notifications
-export const updateListAndNotify = async (listId, userId, updates) => {
-  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
-  await updateDoc(listDocRef, updates);
-
   const listDoc = await getDoc(listDocRef);
-  const listData = listDoc.data();
-  const sharedWith = listData.sharedWith || [];
 
-  for (const sharedUserId of sharedWith) {
-    if (sharedUserId !== userId) {
-      await sendNotification('List Updated', 'A list you are part of has been updated.', sharedUserId);
+  if (listDoc.exists()) {
+    const listData = listDoc.data();
+    const sharedWith = listData.sharedWith || [];
+    if (!sharedWith.includes(userId)) {
+      sharedWith.push(userId);
     }
+    const invitationCode = generateInvitationCode();
+    await updateDoc(listDocRef, { sharedWith, invitationCode });
+    return invitationCode;
+  } else {
+    throw new Error('List not found');
   }
+};
+
+// Function to check if a username exists
+export const checkUsernameExists = async (username) => {
+  const q = query(usersCollection, where('username', '==', username));
+  const querySnapshot = await getDocs(q);
+  return !querySnapshot.empty; // Returns true if username exists
+};
+
+// Function to share a list with another user
+export const shareListWithUser = async (listId, username) => {
+  const userQuery = query(usersCollection, where('username', '==', username));
+  const userSnapshot = await getDocs(userQuery);
+
+  if (!userSnapshot.empty) {
+    const userDoc = userSnapshot.docs[0];
+    const userId = userDoc.id;
+
+    const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
+    const listDoc = await getDoc(listDocRef);
+
+    if (listDoc.exists()) {
+      const listData = listDoc.data();
+      const sharedWith = listData.sharedWith || [];
+      if (!sharedWith.includes(userId)) {
+        sharedWith.push(userId);
+        await updateDoc(listDocRef, { sharedWith });
+      }
+    } else {
+      throw new Error('List not found');
+    }
+  } else {
+    throw new Error('User not found');
+  }
+};
+
+// Function to fetch list details
+export const fetchListDetails = async (listId) => {
+  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
+  const listDoc = await getDoc(listDocRef);
+
+  if (listDoc.exists()) {
+    return { id: listDoc.id, ...listDoc.data() };
+  } else {
+    throw new Error('List not found');
+  }
+};
+
+// Function to update list items
+export const updateListItems = async (listId, items) => {
+  const listDocRef = doc(FIRESTORE_DB, 'lists', listId);
+  await updateDoc(listDocRef, { items });
 };
