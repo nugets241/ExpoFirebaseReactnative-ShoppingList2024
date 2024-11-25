@@ -1,3 +1,4 @@
+// app/screens/ListDetailsScreen.js
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Button, TextInput, Alert } from 'react-native';
 import { fetchListDetails } from '../firestoreService';
@@ -85,6 +86,7 @@ const ListDetailsScreen = ({ route }) => {
                 toggleCheckbox={toggleCheckbox}
                 handleEditItem={handleEditItem}
                 handleDeleteItem={handleDeleteItem}
+                handleUpdateItem={handleUpdateItem} // Pass the handleUpdateItem function
               />
             )}
           />
