@@ -9,15 +9,40 @@ import SettingsScreen from '../screens/SettingsScreen';
 import OnboardingScreen from '../screens/OnboardingScreen';
 import AddListScreen from '../screens/AddListScreen';
 import ListDetailsScreen from '../screens/ListDetailsScreen';
+import { FontAwesome6 } from '@expo/vector-icons';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 const TabNavigator = () => (
   <Tab.Navigator>
-    <Tab.Screen name="My Lists" component={MyListsScreen} />
-    <Tab.Screen name="Shared Lists" component={SharedListsScreen} />
-    <Tab.Screen name="Settings" component={SettingsScreen} />
+    <Tab.Screen
+      name="My Lists"
+      component={MyListsScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => (
+          <FontAwesome6 name="user-large" size={size} color={color} />
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="Shared Lists"
+      component={SharedListsScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => (
+          <FontAwesome6 name="users" size={size} color={color} />
+        ),
+      }}
+    />
+    <Tab.Screen
+      name="Settings"
+      component={SettingsScreen}
+      options={{
+        tabBarIcon: ({ color, size }) => (
+          <FontAwesome6 name="gear" size={size} color={color} />
+        ),
+      }}
+    />
   </Tab.Navigator>
 );
 
