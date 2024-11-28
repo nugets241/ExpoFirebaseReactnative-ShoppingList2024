@@ -15,6 +15,13 @@ import {
 const listsCollection = collection(FIRESTORE_DB, 'lists');
 const usersCollection = collection(FIRESTORE_DB, 'users');
 
+// Function to create a new user
+export const addUser = async (username) => {
+  await addDoc(usersCollection, {
+    username: username,
+  });
+};
+
 // Function to generate a random alphanumeric string
 const generateInvitationCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
