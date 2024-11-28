@@ -22,6 +22,20 @@ export const addUser = async (username) => {
   });
 };
 
+// Function to update a username
+export const updateUsername = async (oldUsername, newUsername) => {
+  const userQuery = query(usersCollection, where('username', '==', oldUsername));
+  const userSnapshot = await getDocs(userQuery);
+
+  if (!userSnapshot.empty) {
+    const userDoc = userSnapshot.docs[0];
+    const userDocRef = doc(FIRESTORE_DB, 'users', userDoc.id);
+    await updateDoc(userDocRef, { username: newUsername });
+  } else {
+    throw new Error('User not found');
+  }
+};
+
 // Function to generate a random alphanumeric string
 const generateInvitationCode = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
