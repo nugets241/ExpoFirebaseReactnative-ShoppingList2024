@@ -70,11 +70,11 @@ const SharedListsScreen = ({ navigation, route }) => {
     <View style={{ flex: 1, padding: 16 }}>
       <FlatList
         data={sharedLists}
-        keyExtractor={item => item.id}
+        keyExtractor={item => item.id }
         renderItem={({ item }) => (
           <TouchableOpacity onPress={() => navigation.navigate('ListDetails', { listId: item.id, listName: item.name })}>
             <View style={styles.itemContainer}>
-              <Text>{item.name}</Text>
+              <Text >{item.name}</Text>
               <Text style={styles.ownerText}>Owner: {item.ownerUsername}</Text>
             </View>
           </TouchableOpacity>

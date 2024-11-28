@@ -77,9 +77,25 @@ export const fetchSharedLists = async (userId) => {
   const q = query(listsCollection, where('sharedWith', 'array-contains', userId));
   const querySnapshot = await getDocs(q);
   const sharedLists = [];
-  querySnapshot.forEach((doc) => {
-    sharedLists.push({ id: doc.id, ...doc.data() });
-  });
+
+  for (const listDoc of querySnapshot.docs) {
+    const listData = listDoc.data();
+    const ownerId = listData.userId;
+
+    // Retrieve the owner's username
+    const ownerDocRef = doc(FIRESTORE_DB, 'users', ownerId);
+    const ownerDoc = await getDoc(ownerDocRef);
+
+    const ownerUsername = ownerDoc.exists() ? ownerDoc.data().username : 'Unknown';
+
+    // Push the shared list with the owner's username
+    sharedLists.push({
+      id: listDoc.id,
+      ...listData,
+      ownerUsername
+    });
+  }
+
   return sharedLists;
 };
 
