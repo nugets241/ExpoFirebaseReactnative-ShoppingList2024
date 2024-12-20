@@ -2,9 +2,11 @@
 
 A shopping list application designed to simplify daily tasks, demonstrating expertise in full-stack development and user-centric design.
 
-![My List Screen](images/mylist.jpg)
-![Shared List Screen](images/sharedlist.jpg)
-![Item Details Screen](images/itemdetails.jpg)
+<div style="display: flex; justify-content: space-between;">
+  <img src="images/mylist.jpg" alt="My List Screen" style="width: 30%;">
+  <img src="images/sharedlist.jpg" alt="Shared List Screen" style="width: 30%;">
+  <img src="images/itemdetails.jpg" alt="Item Details Screen" style="width: 30%;">
+</div>
 
 ## Overview
 
