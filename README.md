@@ -2,6 +2,10 @@
 
 A shopping list application designed to simplify daily tasks, demonstrating expertise in full-stack development and user-centric design.
 
+![My List Screen](images/mylist.jpg)
+![Shared List Screen](images/sharedlist.jpg)
+![Item Details Screen](images/itemdetails.jpg)
+
 ## Overview
 
 **Objective:** To create a functional shopping list app and improve its design for enhanced usability and user experience. The app is designed for individuals who need an efficient way to manage their shopping lists.
@@ -44,9 +48,9 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
 
 ## Problem Solved
 
-**Problem:** Teachers didn't want to use their emails for sign-in and disliked manually logging in every time they opened the app.
+**Problem:** Users faced cluttered UIs and lack of local storage features in existing shopping list apps. Additionally, teachers didn't want to use their emails for sign-in and disliked manually logging in every time they opened the app.
 
-**Solution:** Implemented a username-based login system and used AsyncStorage to auto-login users once they have logged in.
+**Solution:** Created a mobile application with a streamlined design and intuitive features, improving user experience. Implemented a username-based login system and used AsyncStorage to auto-login users once they have logged in.
 
 ## Key Achievements
 
@@ -76,14 +80,41 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
 ### App Demo
 [Watch the App Demo](https://nugets241.github.io/projects/shoppinglist/app-demo.mp4)
 
-## Next Steps
+### Figma Prototypes
+[Watch the Figma Demo](https://nugets241.github.io/projects/shoppinglist/figma-demo.mp4)
 
-### Future Improvements
+## Installation
 
-- Add more customization options for list items.
-- Implement advanced search and filter functionalities.
-- Enhance the UI/UX design based on user feedback.
+1. Clone the repository:
+    ```sh
+    git clone https://github.com/yourusername/shopping-list-app.git
+    cd shopping-list-app
+    ```
 
-## Call to Action
+2. Install dependencies:
+    ```sh
+    npm install
+    ```
 
-Feel free to explore the project further or reach out if you have any questions or would like to discuss potential opportunities.
+3. Set up Firebase:
+    - Create a Firebase project and add your app.
+    - Copy the Firebase configuration and create a `.env` file in the root directory with the following content:
+      ```env
+      API_KEY=your_api_key
+      AUTH_DOMAIN=your_auth_domain
+      PROJECT_ID=your_project_id
+      STORAGE_BUCKET=your_storage_bucket
+      MESSAGING_SENDER_ID=your_messaging_sender_id
+      APP_ID=your_app_id
+      ```
+
+4. Start the app:
+    ```sh
+    npm start
+    ```
+
+## Usage
+
+- **Onboarding:** Enter a username to log in. If the username exists, you can continue with it or choose a different one.
+- **Main Screen:** View your lists, add new lists, and manage existing ones.
+- **List Details:** Add, edit, and delete items in your lists. Share lists with other users using invitation codes.
