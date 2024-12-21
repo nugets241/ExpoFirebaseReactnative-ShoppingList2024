@@ -1,4 +1,4 @@
-# Shopping List App
+# Shopping List App 2024
 
 A shopping list application designed to simplify daily tasks, demonstrating expertise in full-stack development and user-centric design.
 
@@ -7,6 +7,19 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
   <img src="images/sharedlist.jpg" alt="Shared List Screen" style="width: 30%;">
   <img src="images/itemdetails.jpg" alt="Item Details Screen" style="width: 30%;">
 </div>
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Technologies Used](#technologies-used)
+- [Features and Highlights](#features-and-highlights)
+- [Challenges and Solutions](#challenges-and-solutions)
+- [Problem Solved](#problem-solved)
+- [Key Achievements](#key-achievements)
+- [Lessons Learned](#lessons-learned)
+- [Demo](#demo)
+- [Installation](#installation)
+- [Usage](#usage)
 
 ## Overview
 
@@ -43,7 +56,7 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
 - **Sharing Lists:** Share lists with other users using invitation codes.
 - **Editable List Items:** Modal dialogs for editing list items.
 
-### Challenges and Solutions
+## Challenges and Solutions
 
 - **State Management:** Managed state and ensured data consistency across different components using custom hooks like `useListOperations`.
 - **Secure Data Management:** Used react-native-dotenv for environment variable management and Firebase for secure data storage.
@@ -82,9 +95,6 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
 ### App Demo
 [Watch the App Demo](https://nugets241.github.io/projects/shoppinglist/app-demo.mp4)
 
-### Figma Prototypes
-[Watch the Figma Demo](https://nugets241.github.io/projects/shoppinglist/figma-demo.mp4)
-
 ## Installation
 
 1. Clone the repository:
@@ -100,7 +110,7 @@ A shopping list application designed to simplify daily tasks, demonstrating expe
 
 3. Set up Firebase:
     - Create a Firebase project and add your app.
-    - Copy the Firebase configuration and create a `.env` file in the root directory with the following content:
+    - Copy the Firebase configuration and create a [.env](http://_vscodecontentref_/0) file in the root directory with the following content:
       ```env
       API_KEY=your_api_key
       AUTH_DOMAIN=your_auth_domain
